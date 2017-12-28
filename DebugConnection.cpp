@@ -200,3 +200,15 @@ int64_t DebugConnection::execute(QString scriptText, bool immediate)
     builder.writeMessage(socket);
     return nextToken_++;
 }
+
+int64_t DebugConnection::addWatchpoint(int id, int line)
+{
+    CDebugRequestBuilder builder(nextToken_);
+
+    auto addBreakpoint = builder.getBuilder().initAddBreakpoint();
+    addBreakpoint.setId(id);
+    addBreakpoint.setLine(line);
+
+    builder.writeMessage(socket);
+    return nextToken_++;
+}

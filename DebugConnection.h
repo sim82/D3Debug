@@ -15,6 +15,8 @@ public:
     int64_t scriptGet(int id);
     int64_t scriptInfo();
     int64_t execute(QString scriptText, bool immediate = true);
+    int64_t addWatchpoint(int id, int line);
+
 signals:
     void connected();
 
