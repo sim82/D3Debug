@@ -90,6 +90,49 @@ void DebugConnection::messageReceived(std::vector<char> message)
         }
         emit scriptInfoReply(reply.getToken(), std::move(infos));
     }
+    else if (reply.hasEventWatchpoint())
+    {
+        auto eventWatchpointReader = reply.getEventWatchpoint();
+
+        QVector<QString> localNames;
+        QVector<QVariant> localValues;
+
+       for (auto const& ln : eventWatchpointReader.getLocalNames())
+       {
+           localNames.push_back(ln.cStr());
+       }
+
+       for (auto const &lv : eventWatchpointReader.getLocalValues())
+       {
+           if (lv.isBoolValue())
+           {
+               localValues.push_back(lv.getBoolValue());
+           }
+           else if (lv.isIntValue())
+           {
+               localValues.push_back(qlonglong(lv.getIntValue()));
+           }
+           else if (lv.isFloatValue())
+           {
+               localValues.push_back(lv.getFloatValue());
+           }
+           else if (lv.isStringValue())
+           {
+               localValues.push_back(lv.getStringValue().cStr());
+           }
+           else
+           {
+               localValues.push_back(QString("<unhandled>"));
+           }
+       }
+
+       emit eventWatchpoint(eventWatchpointReader.getWatchpointId(), eventWatchpointReader.getScriptId(), eventWatchpointReader.getLine(), std::move(localNames), std::move(localValues));
+    }
+    else if (reply.hasExecute())
+    {
+        auto executeReader = reply.getExecute();
+        emit executeReply( reply.getToken(), executeReader.getConsoleOutput().cStr(), executeReader.getError() );
+    }
 }
 
 class CDebugRequestBuilder
@@ -131,8 +174,8 @@ int64_t DebugConnection::scriptGet(int id)
 
     auto scriptGet = req.initScriptGet();
     scriptGet.setId(id);
-    builder.writeMessage(socket);
 
+    builder.writeMessage(socket);
     return nextToken_++;
 }
 
@@ -142,6 +185,17 @@ int64_t DebugConnection::scriptInfo()
 
     auto req = builder.getBuilder();
     req.initScriptInfo();
+
+    builder.writeMessage(socket);
+    return nextToken_++;
+}
+
+int64_t DebugConnection::execute(QString scriptText, bool immediate)
+{
+    CDebugRequestBuilder builder(nextToken_);
+    auto executeBuilder = builder.getBuilder().initExecute();
+    executeBuilder.setScript(scriptText.toStdString());
+    executeBuilder.setImmediate(immediate);
 
     builder.writeMessage(socket);
     return nextToken_++;

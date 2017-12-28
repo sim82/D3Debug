@@ -32,7 +32,8 @@ SOURCES += \
 
 HEADERS += \
         MainWindow.h \
-    DebugConnection.h
+    DebugConnection.h \
+    DebugConnectionTypes.h
 
 FORMS += \
         MainWindow.ui
