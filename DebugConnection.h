@@ -23,7 +23,7 @@ signals:
     void scriptGetReply(int64_t token, QVector<QString> lines);
     void scriptInfoReply(int64_t token, QVector<ScriptInfo> infos);
     void executeReply(int64_t, QString consoleOutput, bool error);
-
+    void addWatchpointReply(int64_t token, int watchpointId);
     void eventWatchpoint(int watchpointId, int scriptId, int lineNumbers, QVector<QString> localNames,
                          QVector<QVariant> localValues);
 

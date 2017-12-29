@@ -97,41 +97,47 @@ void DebugConnection::messageReceived(std::vector<char> message)
         QVector<QString> localNames;
         QVector<QVariant> localValues;
 
-       for (auto const& ln : eventWatchpointReader.getLocalNames())
-       {
-           localNames.push_back(ln.cStr());
-       }
+        for (auto const &ln : eventWatchpointReader.getLocalNames())
+        {
+            localNames.push_back(ln.cStr());
+        }
 
-       for (auto const &lv : eventWatchpointReader.getLocalValues())
-       {
-           if (lv.isBoolValue())
-           {
-               localValues.push_back(lv.getBoolValue());
-           }
-           else if (lv.isIntValue())
-           {
-               localValues.push_back(qlonglong(lv.getIntValue()));
-           }
-           else if (lv.isFloatValue())
-           {
-               localValues.push_back(lv.getFloatValue());
-           }
-           else if (lv.isStringValue())
-           {
-               localValues.push_back(lv.getStringValue().cStr());
-           }
-           else
-           {
-               localValues.push_back(QString("<unhandled>"));
-           }
-       }
+        for (auto const &lv : eventWatchpointReader.getLocalValues())
+        {
+            if (lv.isBoolValue())
+            {
+                localValues.push_back(lv.getBoolValue());
+            }
+            else if (lv.isIntValue())
+            {
+                localValues.push_back(qlonglong(lv.getIntValue()));
+            }
+            else if (lv.isFloatValue())
+            {
+                localValues.push_back(lv.getFloatValue());
+            }
+            else if (lv.isStringValue())
+            {
+                localValues.push_back(lv.getStringValue().cStr());
+            }
+            else
+            {
+                localValues.push_back(QString("<unhandled>"));
+            }
+        }
 
-       emit eventWatchpoint(eventWatchpointReader.getWatchpointId(), eventWatchpointReader.getScriptId(), eventWatchpointReader.getLine(), std::move(localNames), std::move(localValues));
+        emit eventWatchpoint(eventWatchpointReader.getWatchpointId(), eventWatchpointReader.getScriptId(),
+                             eventWatchpointReader.getLine(), std::move(localNames), std::move(localValues));
     }
     else if (reply.hasExecute())
     {
         auto executeReader = reply.getExecute();
-        emit executeReply( reply.getToken(), executeReader.getConsoleOutput().cStr(), executeReader.getError() );
+        emit executeReply(reply.getToken(), executeReader.getConsoleOutput().cStr(), executeReader.getError());
+    }
+    else if (reply.hasAddBreakpoint())
+    {
+        auto addBreakpointReader = reply.getAddBreakpoint();
+        emit addWatchpointReply(reply.getToken(), addBreakpointReader.getBreakpointId());
     }
 }
 
